@@ -71,11 +71,15 @@ class Orb {
             dist = Math.max(0, NEUTRAL_RADIUS - (absChange * 5));
         }
 
+        // CLAMP for safety during debug
+        dist = Math.min(dist, 800);
+
         // 3. Update Visuals
         this.graphics.clear();
-        const color = token.status === 'rising' ? COLOR_RISER : COLOR_FALLER;
-        this.graphics.circle(0, 0, size);
-        this.graphics.fill({ color: color, alpha: 0.8 });
+        // FORCE DEBUG VISUAL
+        this.graphics.rect(-10, -10, 20, 20);
+        this.graphics.fill(0xFF0000); // RED
+        this.graphics.alpha = 1.0;
 
         // Attach data for interaction
         // @ts-ignore
@@ -94,6 +98,15 @@ class Orb {
 
         this.graphics.x = this.currentX;
         this.graphics.y = this.currentY;
+
+        // Log occasionally for the first orb via a global or hack, but simpler:
+        // just trust visual for now. 
+        // Actually, if x/y are NaN, that explains it.
+        if (Number.isNaN(this.graphics.x)) {
+            console.error("DEBUG: Orb X is NaN!");
+            this.graphics.x = 0;
+            this.currentX = 0;
+        }
 
         // Scale Animation (Hover Effect)
         // We act on the graphics scale property
@@ -131,9 +144,6 @@ export const MarketScene = () => {
             const mainContainer = new Container();
             mainContainer.x = app.screen.width / 2;
             mainContainer.y = app.screen.height / 2;
-
-            // Enable sortable children if we wanted strictly z-index, but addChild(toEnd) works for bring-to-front
-            // mainContainer.sortableChildren = true; 
 
             app.stage.addChild(mainContainer);
             mainContainerRef.current = mainContainer;
@@ -189,8 +199,10 @@ export const MarketScene = () => {
         const currentOrbs = orbsRef.current;
         const activeSymbols = new Set(tokens.map(t => t.symbol));
 
+        console.log("DEBUG: Visual update triggered. Token count:", tokens.length);
+
         // Create or Update Orbs
-        tokens.forEach(token => {
+        tokens.forEach((token, index) => {
             let orb = currentOrbs.get(token.symbol);
 
             if (!orb) {
@@ -199,7 +211,12 @@ export const MarketScene = () => {
                 currentOrbs.set(token.symbol, orb);
             }
 
-            orb.updateData(token); // Removed unused center args
+            orb.updateData(token);
+
+            // Log first orb to check validity
+            if (index === 0) {
+                console.log(`DEBUG: Orb[0] (${token.symbol}) - Target: ${orb.targetX.toFixed(2)}, ${orb.targetY.toFixed(2)} Radius: ${orb.radius} Size logic: Vol=${token.volume}`);
+            }
         });
 
         // Remove old Orbs

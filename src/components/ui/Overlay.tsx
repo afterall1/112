@@ -63,6 +63,8 @@ export const Overlay = () => {
                         </button>
                     </div>
                 )}
+
+                {/* DEBUG DATA DISPLAY */}
             </div>
 
             {/* Slide-over Panel */}
