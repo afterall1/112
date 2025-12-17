@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+body {
+  background-color: #050505;
+  color: white;
+  margin: 0;
+  overflow: hidden;
+  /* For WebGL context */
+}
